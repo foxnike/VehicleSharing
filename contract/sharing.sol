@@ -6,33 +6,37 @@ contract sharing {
     address payable admin;
 
     struct vehicle {
-        string id;
+        uint256 id;
         uint256 unitPrice; // price per unit time;
         uint256 idleTime;
         uint256 drivingDistance; // accumulative driving distance
         uint256 vehicleValue;
+        uint256[] preference;
+        uint256[] requestQuene;
     }
 
     struct customer {
-        string id;
+        uint256 id;
         uint256 drivingAge;
+        uint256[] preference;
+    }
+
+    struct matchPair {
+        string userId;
+        string vehicleId;
     }
 
     vehicle[] private vehicleList;
 
     customer[] private customerList;
 
-    modifier checkParameter() {
-        
-    }
-
     constructor() payable {
         admin = payable(msg.sender);
     }
 
     // need a modifier to check input parameter
-    function addVehicle(
-        string memory _id,
+    function appendVehicle(
+        uint256 _id,
         uint256 _unitPrice,
         uint256 _idleTime,
         uint256 _drivingDistance,
@@ -50,8 +54,8 @@ contract sharing {
     }
 
     // need a modifier to check input parameter
-    function addCustomer(
-        string memory _id,
+    function appendCustomer(
+        uint256 _id,
         uint256 _drivingAge
     ) public {
         customerList.push(
@@ -60,5 +64,36 @@ contract sharing {
                 drivingAge: _drivingAge
             })
         );
+    }
+
+    function buildPairs() public returns (matchPair[] memory) {
+        buildPreferenceForCustomer();
+        buildPreferenceForVehicle();
+        uint256[customerList.length] unmatchCutomer;
+        for(uint i = 0; i < customerList ; i++){
+           sendRequset()
+        }
+    }
+
+    function buildPreferenceForVehicles() private {
+
+    }
+
+    function buildPreferenceForCustomers() private {
+
+    }
+
+    function sendRequset(uint256 num) private returns(int) {
+
+    }
+
+
+
+    function vehicleValue() private pure returns(fixed ) {
+
+    }
+    
+    function customerValue() private pure returns(fixed) {
+
     }
 }
