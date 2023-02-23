@@ -3,7 +3,8 @@
 pragma solidity >=0.8.0;
 
 
-// TODO ensure how and where use this constance
+// TODO ensure  where use this constance
+// where: data assgined from a external input
 uint256 constant expansionFactor = 10^8;
 
 uint256 constant skillPara1 = 1;
@@ -13,8 +14,7 @@ contract sharing {
     address payable admin;
 
     struct vehicle {
-        uint256 id;  // does it has meaning?
-        uint256 price; // price per unit time;
+        uint256 price; 
         uint256 idleTime;
         uint256 drivingDistance; // accumulative driving distance
         uint256 vehicleValue;
@@ -24,10 +24,10 @@ contract sharing {
     }
 
     struct customer {
-        uint256 id;
         uint256 drivingAge;
         uint256 deductionPerTime;
         uint256[] preference;
+        uint256 credit;
     }
 
     // now it records the subscript of customers or vehicles
@@ -52,7 +52,6 @@ contract sharing {
 
     //TODO maybe need a modifier to check parameters
     function appendVehicle(
-        uint256 _id,
         uint256 _price,
         uint256 _idleTime,
         uint256 _drivingDistance,
@@ -61,7 +60,6 @@ contract sharing {
         uint256[] memory blank;
         vehicleList.push(
             vehicle({
-                id: _id,
                 price: _price,
                 idleTime: _idleTime,
                 drivingDistance: _drivingDistance,
@@ -75,17 +73,16 @@ contract sharing {
 
     //TODO maybe need a modifier to check parameters
     function appendCustomer(
-        uint256 _id,
         uint256 _deductionPerTime,
         uint256 _drivingAge
     ) public {
         uint256[] memory blank;
         customerList.push(
             customer({
-                id: _id,
                 drivingAge: _drivingAge,
                 deductionPerTime: _deductionPerTime,
-                preference: blank
+                preference: blank,
+                credit: expansionFactor
             })
         );
     }
@@ -136,31 +133,43 @@ contract sharing {
             }
             for(uint j = 0; j < values.length; j++) {
                 uint maxPos = getMaxOne(values);
+                vehicleList[i].preference.push(maxPos);
+                values[maxPos] = 0; // for n loops, all value in values equal to zero
+            }
+
+        }
+    }
+
+    function updatePreferenceForCustomers() private {
+        
+        for(uint i = 0; i < customerList.length; i++) {
+            uint256[] memory values;
+            for(uint j = 0; j < vehicleList.length; j++) {
+                values[j] = vehicleValue(i,j);
+            }
+            for(uint j = 0; j < values.length; j++) {
+                uint maxPos = getMaxOne(values);
                 customerList[i].preference.push(maxPos);
                 values[maxPos] = 0;
             }
         }
     }
 
-    function updatePreferenceForCustomers() private {
-
-    }
-
     function sendRequset(uint256 order) private {
         uint256 vehicleId = customerList[order].preference[0];
         vehicleList[vehicleId].requestQuene[0] = order;
-        //TODO is it need to remove ranked object?
+        //TODO is it need to remove ranked object? 
     }
 
 
     //plus 10^8/ 2^10 for every number
-    function vehicleValue() private pure returns(fixed ) {
+    function vehicleValue(uint vehicleId,uint customerId) private pure returns(uint256 ) {
         
     }
     //plus 10^8/ 2^10 for every number
     // utility of vehicles is indicator multiply price multiply driving skill multiply credit
-    // for the  customer whom condition cant satisfied  return zero
-    function customerValue(uint vehicleId,uint customerId) private  returns(uint256) {
+    //TODO for the  customer whom condition cant satisfied  return zero
+    function customerValue(uint vehicleId,uint customerId) private view returns(uint256) {
         uint256 price = vehicleList[vehicleId].price;
         uint256 skillUtility = getSkillUtilty(customerList[customerId].drivingAge,customerList[customerId].deductionPerTime);
         uint256 creditUtility = getCreditUtility(customerId);
@@ -170,8 +179,15 @@ contract sharing {
 
 
     //TODO get customer order in vehivle's preference list
-    function getDegree(uint256 vehicleId,uint256 customerId) private returns(uint256){
-
+    function getDegree(uint256 vehicleId,uint256 customerId) private view returns(uint256){
+        uint[] memory preference = vehicleList[vehicleId].preference;
+        for(uint i = 0; i <preference.length; i++) {
+            if(preference[i] == customerId) {
+                return i;
+            }
+        }
+        // need a error hander
+        return 0;
     }
 
     function getMaxOne(uint256[] memory values) pure private returns(uint) {
@@ -190,7 +206,7 @@ contract sharing {
         return drivingAge*drivingAge*skillPara1 - deductionPerTime*skillPara2;
     }
 
-    function getCreditUtility(uint customerId) private returns(uint) {
-
+    function getCreditUtility(uint customerId) private view returns(uint) {
+        return customerList[customerId].credit;
     }
 }
